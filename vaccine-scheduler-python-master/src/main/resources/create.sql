@@ -1,7 +1,8 @@
 DROP TABLE Caregivers;
---DROP TABLE Patient;
+DROP TABLE Patients;
 DROP TABLE Availabilities;
 DROP TABLE Vaccines;
+DROP TABLE Appointments;
 
 
 

@@ -58,7 +58,7 @@ class Availabilities:
         finally:
             cm.close_connection()
 
-    def caregiver_available(date):
+    def caregiver_search(d) -> int:
         cm = ConnectionManager()
         conn = cm.create_connection()
         cursor = conn.cursor(as_dict=True)
@@ -66,7 +66,25 @@ class Availabilities:
         select_caregivers = "SELECT Administrator FROM Availabilities WHERE Time = %s ORDER By Administrator"
         #Query the rows for availabilities
         try:
-            cursor.execute(select_caregivers, date)
+            cursor.execute(select_caregivers, d)
+            count = 0
+            for row in cursor:
+                print(row["Administrator"])
+                count +=1
+        except pymssql.Error:
+            raise
+        finally:
+            cm.close_connection()
+
+    def caregiver_available(d) -> str:
+        cm = ConnectionManager()
+        conn = cm.create_connection()
+        cursor = conn.cursor(as_dict=True)
+        
+        caregiver_available = "SELECT Administrator FROM Availabilities WHERE Time = %s ORDER By Administrator"
+        #Query the rows for availabilities
+        try:
+            cursor.execute(caregiver_available, d)
             for row in cursor:
                 return row["Administrator"]
         except pymssql.Error:

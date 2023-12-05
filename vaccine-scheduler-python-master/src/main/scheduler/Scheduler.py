@@ -17,18 +17,11 @@ Note: it is always true that at most one of currentCaregiver and currentPatient 
         since only one user can be logged-in at a time
 '''
 current_patient = None
-
 current_caregiver = None
 
-
-def strong_password(password: str) -> bool:
-    """
-    Extra Credit
-    """
-    return re.match(
-        '^(?=.{8,}$)(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@?#])', password) is not None
-
 def create_patient(tokens):
+    cm = ConnectionManager()
+    conn = cm.create_connection()
     # create_patient <username> <password>
     # check 1: the length for tokens need to be exactly 3 to include all information (with the operation name)
     if (len(tokens) != 3):
@@ -44,7 +37,7 @@ def create_patient(tokens):
         return
     
     #check 3: strong password
-    if (not strong_password(password)):
+    #if (not strong_password(password)):
         print("Password is weak")
         return
 
@@ -67,7 +60,8 @@ def create_patient(tokens):
         return
     print("Created user ",  username)
 
-
+    cm.close_connection()
+    
 def username_exists_patient(username):
     cm = ConnectionManager()
     conn = cm.create_connection()
@@ -90,6 +84,12 @@ def username_exists_patient(username):
         cm.close_connection()
     return False
 
+def strong_password(password: str) -> bool:
+    """
+    Extra Credit
+    """
+    return re.match(
+        '^(?=.{8,}$)(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@?#])', password) is not None
 
 
 
@@ -237,8 +237,8 @@ def search_caregiver_schedule(tokens):
     if current_caregiver is None and current_patient is None:
         print("Please login first!")
         return
-    # check 2: the length for tokens need to be exactly 3 to include all information (with the operation name)
-    if len(tokens) != 3:
+    # check 2: the length for tokens need to be exactly 2 to include all information (with the operation name)
+    if len(tokens) != 2:
         print("Please try again!")
         return
 
@@ -252,8 +252,8 @@ def search_caregiver_schedule(tokens):
         d = datetime.datetime(year, month, day)
         #Output the username for the caregivers that are available for the date
         print("Caregivers:")
-        if(Availabilities.caregiver_available(d) == 0):
-            print("Please try again")
+        if(Availabilities.caregiver_search(d) == 0):
+            print("No caregivers available")
         # number of available doses left for each vaccine
         print("Vaccines")
         Vaccine.select_vaccines()
@@ -283,7 +283,7 @@ def reserve(tokens):
 
     #Checks if the user is logged in first
     if current_caregiver is None and current_patient is None:
-        print("Please try again")
+        print("Please log in first")
         return
     #  check 1: check if the current is a patient 
     if current_patient is None:
@@ -325,8 +325,8 @@ def reserve(tokens):
         conn = cm.create_connection()
         cursor = conn.cursor()
 
-        remove_availability = "DELETE FROM Availabilities WHERE Time = %s AND Adminstrator = %s"  
-        add_appoint = "INSERT INTO Appointments (uid, Patient, Adminstrator, Vaccine, Time) VALUES (%s, %s, %s, %s, %s)"
+        remove_availability = "DELETE FROM Availabilities WHERE Time = %s AND Administrator = %s"  
+        add_appoint = "INSERT INTO Appointments (uid, Patient, Administrator, Vaccine, Time) VALUES (%s, %s, %s, %s, %s)"
         cursor.execute(remove_availability, (d, administrator))
         cursor.execute(
             add_appoint, (uid, current_patient.username, administrator, vaccine, d))
@@ -409,7 +409,8 @@ def cancel(tokens):
         try:
             vaccine.increase_available_doses(1)
         except:
-            print("Please try again!");
+
+            print("Please try again (doses)!");
             return
     except:
         print("Please try again!")
@@ -559,7 +560,7 @@ def start():
             reserve(tokens)
         elif operation == "upload_availability":
             upload_availability(tokens)
-        elif operation == cancel:
+        elif operation == "cancel":
             cancel(tokens)
         elif operation == "add_doses":
             add_doses(tokens)

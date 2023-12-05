@@ -7,10 +7,10 @@ import pymssql
 
 
 class Appointment:
-    def __init__(self, time, patient,adminstrator,  vaccine):
+    def __init__(self, time, patient,administrator,  vaccine):
         self.time = time
         self.patient = patient
-        self.adminstrator = adminstrator
+        self.administrator = administrator
         self.vaccine = vaccine
 
     # getters
@@ -19,13 +19,13 @@ class Appointment:
         conn = cm.create_connection()
         cursor = conn.cursor(as_dict=True)
 
-        get_caregiver_details = "SELECT Time, Patient, Adminstrator, Vaccine FROM Appointments WHERE Time = %s AND Patient = %s AND Adminstrator = %s AND Vaccine = %ss"
+        get_caregiver_details = "SELECT Time, Patient, Administrator, Vaccine FROM Appointments WHERE Time = %s AND Patient = %s AND Administrator = %s AND Vaccine = %ss"
         try:
             cursor.execute(get_caregiver_details, self.username)
             for row in cursor:
                 self.time = row['Time']
                 self.patient = row['Patient']
-                self.adminstrator = row['Adminstrator']
+                self.administrator = row['Administrator']
                 self.vaccine = row['Vaccine']
                 return self
         except pymssql.Error as e:
@@ -40,8 +40,8 @@ class Appointment:
     def get_patient(self):
         return self.patient
 
-    def get_adminstrator(self):
-        return self.adminstrator
+    def get_administrator(self):
+        return self.administrator
 
     def get_vaccine(self):
         return self.vaccine
@@ -55,7 +55,7 @@ class Appointment:
         add_caregivers = "INSERT INTO Caregivers VALUES (%s, %s, %s)"
         try:
             cursor.execute(add_caregivers,
-                           (self.time, self.patient, self.adminstrator,  self.vaccine))
+                           (self.time, self.patient, self.administrator,  self.vaccine))
             # you must call commit() to persist your data if you don't set autocommit to True
             conn.commit()
         except pymssql.Error:
@@ -68,8 +68,8 @@ class Appointment:
         conn = cm.create_connection()
         cursor = conn.cursor(as_dict=True)
 
-        retrieve_appointments = "SELECT uid, vaccine, time, patient, adminstrator FROM Appointments WHERE " + \
-            ("patient = %s" if patient else "adminstrator = %s" + " ORDER BY uid")
+        retrieve_appointments = "SELECT uid, vaccine, time, patient, administrator FROM Appointments WHERE " + \
+            ("patient = %s" if patient else "administrator = %s" + " ORDER BY uid")
 
         try:
             cursor.execute(retrieve_appointments, user)
@@ -77,7 +77,7 @@ class Appointment:
             for row in cursor:
                 count +=1
                 print(
-                    f'Appointment ID: {row["uid"]}, Vaccine: {row["vaccine"]}, Time: {row["time"]}, {"Adminstrator" if patient else "Patient"}: {row["adminstrator" if patient else "patient"]}') 
+                    f'Appointment ID: {row["uid"]}, Vaccine: {row["vaccine"]}, Time: {row["time"]}, {"Administrator" if patient else "Patient"}: {row["administrator" if patient else "patient"]}') 
             return count
         except pymssql.Error as e:
             raise e
@@ -90,12 +90,12 @@ class Appointment:
         conn = cm.create_connection()
         cursor = conn.cursor(as_dict=True)
 
-        retrieve_appointment = "SELECT Time, Adminstrator, Patient, Vaccine FROM Appointments WHERE uid = %s"
+        retrieve_appointment = "SELECT Time, Administrator, Patient, Vaccine FROM Appointments WHERE uid = %s"
         
         try:
             cursor.execute(retrieve_appointment, uid)
             for row in cursor:
-                return Appointment(row["Time"], row["Adminstrator"], row["Patient"], row["Vaccine"])
+                return Appointment(row["Time"], row["Administrator"], row["Patient"], row["Vaccine"])
         except pymssql.Error as e:
             raise e
         finally:
